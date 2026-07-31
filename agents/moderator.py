@@ -1,4 +1,5 @@
 from agents.base_agent import BaseAgent
+from services.moderator_service import ModeratorService
 
 
 class ModeratorAgent(BaseAgent):
@@ -7,6 +8,10 @@ class ModeratorAgent(BaseAgent):
         super().__init__("Moderator")
 
     def run(self, state):
-        print(f"{self.name} is planning the debate...")
+
+        analysis = ModeratorService.analyze_topic(state.topic)
+
+        print("\n========== MODERATOR ==========\n")
+        print(analysis)
 
         return state

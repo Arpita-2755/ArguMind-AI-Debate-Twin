@@ -16,4 +16,8 @@ print("Invoking graph...")
 result = graph.invoke(state)
 
 print("Graph finished.")
-print(result)
+print()
+
+print("========== GRAPH RESULT ==========")
+
+print(result.plan)

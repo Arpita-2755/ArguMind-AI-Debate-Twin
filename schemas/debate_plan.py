@@ -1,19 +1,18 @@
-from dataclasses import dataclass, field
-from typing import List
+from pydantic import BaseModel, Field
 
 
-@dataclass
-class DebateRule:
-    title: str
-    description: str
+class DebatePlan(BaseModel):
 
-
-@dataclass
-class DebatePlan:
     topic: str
-    user_position: str
-    ai_position: str
+
+    category: str
+
+    difficulty: str
+
     strategy: str
-    rounds: int
-    opening_speaker: str
-    rules: List[DebateRule] = field(default_factory=list)
+
+    ai_position: str
+
+    rounds: int = Field(default=5)
+
+    opening_speaker: str = Field(default="User")
