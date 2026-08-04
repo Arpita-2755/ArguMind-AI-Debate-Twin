@@ -18,6 +18,7 @@ result = graph.invoke(state)
 print("Graph finished.")
 print()
 
-print("========== GRAPH RESULT ==========")
+print("\n========== GENERATED PLAN ==========\n")
 
-print(result.plan)
+print(type(result))
+print(result["plan"])

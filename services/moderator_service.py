@@ -1,26 +1,34 @@
 from services.llm_service import LLMService
+from schemas.debate_plan import DebatePlan
 
 
 class ModeratorService:
 
     @staticmethod
-    def analyze_topic(topic: str):
+    def create_plan(topic: str):
 
         prompt = f"""
 You are an expert debate moderator.
 
-Analyze the debate topic.
+Create a debate plan.
 
 Topic:
 {topic}
 
-Return:
+Return JSON with the following structure:
 
-1. Topic Category
-2. Difficulty
-3. Recommended Debate Strategy
-
-Keep your response short.
+{{
+    "topic": "{topic}",
+    "category": "",
+    "difficulty": "",
+    "strategy": "",
+    "ai_position": "",
+    "rounds": 5,
+    "opening_speaker": "User"
+}}
 """
 
-        return LLMService.generate(prompt)
+        return LLMService.generate_structured(
+            prompt,
+            DebatePlan
+        )

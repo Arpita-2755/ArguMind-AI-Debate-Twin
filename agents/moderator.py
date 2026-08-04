@@ -9,9 +9,11 @@ class ModeratorAgent(BaseAgent):
 
     def run(self, state):
 
-        analysis = ModeratorService.analyze_topic(state.topic)
+        plan = ModeratorService.create_plan(state.topic)
 
         print("\n========== MODERATOR ==========\n")
-        print(analysis)
+        print(plan)
+
+        state.plan = plan
 
         return state

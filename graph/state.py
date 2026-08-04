@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
 from graph.enums import DebatePhase
+from schemas.debate_plan import DebatePlan
 # -------------------------------
 # Individual Debate Message
 # -------------------------------
@@ -56,3 +57,4 @@ class DebateState:
     score: DebateScore = field(default_factory=DebateScore)
     profile: UserProfile = field(default_factory=UserProfile)
     metadata: Dict = field(default_factory=dict)
+    plan: DebatePlan | None = None
