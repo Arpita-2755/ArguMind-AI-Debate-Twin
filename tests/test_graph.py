@@ -21,4 +21,36 @@ print()
 print("\n========== GENERATED PLAN ==========\n")
 
 print(type(result))
-print(result["plan"])
+history = result["debate_history"]
+
+print()
+
+print("========== DEBATE HISTORY ==========")
+
+history = result["debate_history"]
+
+print()
+
+print("========== DEBATE ==========")
+
+for turn in history:
+
+    print()
+
+    print(f"Round {turn.round_number}")
+
+    print()
+
+    print("User")
+
+    print("-"*20)
+
+    print(turn.user_argument)
+
+    print()
+
+    print("Opponent")
+
+    print("-"*20)
+
+    print(turn.opponent_argument)

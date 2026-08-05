@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Optional
 from graph.enums import DebatePhase
 from schemas.debate_plan import DebatePlan
+from schemas.debate_turn import DebateTurn
 # -------------------------------
 # Individual Debate Message
 # -------------------------------
@@ -51,10 +52,11 @@ class DebateState:
     user_stance: str
     ai_stance: str
     current_phase: DebatePhase
-    debate_history: List[DebateMessage] = field(default_factory=list)
+    debate_history: list[DebateTurn] = field(default_factory=list)
     retrieved_evidence: List[Evidence] = field(default_factory=list)
     tool_outputs: List[ToolOutput] = field(default_factory=list)
-    score: DebateScore = field(default_factory=DebateScore)
+    debate_score: DebateScore = field(default_factory=DebateScore)
     profile: UserProfile = field(default_factory=UserProfile)
     metadata: Dict = field(default_factory=dict)
-    plan: DebatePlan | None = None
+    debate_plan: DebatePlan | None = None
+    current_round: int = 1

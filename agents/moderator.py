@@ -14,6 +14,6 @@ class ModeratorAgent(BaseAgent):
         print("\n========== MODERATOR ==========\n")
         print(plan)
 
-        state.plan = plan
+        state.debate_plan = plan
 
         return state
