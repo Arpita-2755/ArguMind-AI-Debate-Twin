@@ -1,3 +1,6 @@
+from schemas.debate_turn import DebateTurn
+
+
 class DebateEngine:
 
     TOTAL_ROUNDS = 3
@@ -13,3 +16,17 @@ class DebateEngine:
     def debate_finished(state):
 
         return state.current_round > DebateEngine.TOTAL_ROUNDS
+
+    @staticmethod
+    def add_user_argument(state, argument):
+
+        turn = DebateTurn(
+            round_number=state.current_round,
+            phase=state.current_phase.value,
+            user_argument=argument,
+            opponent_argument=""
+        )
+
+        state.debate_history.append(turn)
+
+        return state

@@ -12,7 +12,6 @@ class OpponentAgent(BaseAgent):
 
         print("\n========== OPPONENT ==========\n")
 
-        # Generate AI opening argument
         argument = OpponentService.generate_opening(
             state.debate_plan,
             state.user_stance
@@ -20,11 +19,9 @@ class OpponentAgent(BaseAgent):
 
         print(argument)
 
-        # Store the debate turn
-        state = DebateService.add_turn(
-            state=state,
-            user_argument="",
-            opponent_argument=argument
+        state = DebateService.complete_turn(
+            state,
+            argument
         )
 
         return state

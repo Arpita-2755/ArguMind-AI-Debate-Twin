@@ -3,6 +3,7 @@ from typing import List, Dict, Optional
 from graph.enums import DebatePhase
 from schemas.debate_plan import DebatePlan
 from schemas.debate_turn import DebateTurn
+from schemas.judge_result import JudgeResult
 # -------------------------------
 # Individual Debate Message
 # -------------------------------
@@ -60,3 +61,4 @@ class DebateState:
     metadata: Dict = field(default_factory=dict)
     debate_plan: DebatePlan | None = None
     current_round: int = 1
+    judge_result: JudgeResult | None = None
