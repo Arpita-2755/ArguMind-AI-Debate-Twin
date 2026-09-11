@@ -10,14 +10,16 @@ class OpponentAgent(BaseAgent):
 
     def run(self, state):
 
-        print("\n========== OPPONENT ==========\n")
+        current_turn = state.debate_history[-1]
 
-        argument = OpponentService.generate_opening(
+        # Previous turns only.
+        previous_history = state.debate_history[:-1]
+
+        argument = OpponentService.generate_response(
             state.debate_plan,
-            state.user_stance
+            current_turn.user_argument,
+            previous_history
         )
-
-        print(argument)
 
         state = DebateService.complete_turn(
             state,

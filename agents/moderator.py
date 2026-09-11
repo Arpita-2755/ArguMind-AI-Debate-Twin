@@ -9,7 +9,10 @@ class ModeratorAgent(BaseAgent):
 
     def run(self, state):
 
-        plan = ModeratorService.create_plan(state.topic)
+        plan = ModeratorService.create_plan(
+        state.topic,
+        state.ai_stance
+    )
 
         print("\n========== MODERATOR ==========\n")
         print(plan)
