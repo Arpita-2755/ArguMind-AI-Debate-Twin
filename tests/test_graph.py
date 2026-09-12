@@ -1,4 +1,4 @@
-from graph.builder import (moderator_graph, opponent_graph, judge_graph)
+from graph.builder import (moderator_graph, opponent_graph, judge_graph, reflection_graph)
 from graph.state import DebateState
 from graph.enums import DebatePhase
 from services.debate_service import DebateService
@@ -118,6 +118,17 @@ print("\n========== JUDGE RESULT ==========\n")
 
 print(state.judge_result)
 
+# REFLECTION
+
+print("\n\nInvoking reflection...\n")
+
+result = reflection_graph.invoke(state)
+
+state = DebateState(**result)
+
+print("\n========== REFLECTION ==========\n")
+
+print(state.metadata["reflection"])
 # ==========================================
 # DEBATE FINISHED
 # ==========================================

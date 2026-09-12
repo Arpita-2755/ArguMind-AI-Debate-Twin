@@ -4,7 +4,8 @@ from graph.state import DebateState
 from graph.nodes import (
     moderator_node,
     opponent_node,
-    judge_node
+    judge_node,
+    reflection_node
 )
 
 
@@ -73,5 +74,22 @@ judge_builder.add_edge(
 
 judge_graph = judge_builder.compile()
 
+# REFLECTION GRAPH
+
+reflection_builder = StateGraph(DebateState)
+
+reflection_builder.add_node(
+    "reflection",
+    reflection_node
+)
+
+reflection_builder.set_entry_point("reflection")
+
+reflection_builder.add_edge(
+    "reflection",
+    END
+)
+
+reflection_graph = reflection_builder.compile()
 
 print("Graphs compiled.")
