@@ -1,4 +1,4 @@
-from graph.builder import (moderator_graph, opponent_graph, judge_graph, reflection_graph)
+from graph.builder import (moderator_graph, opponent_graph, judge_graph, reflection_graph, reasoning_analyzer_graph)
 from graph.state import DebateState
 from graph.enums import DebatePhase
 from services.debate_service import DebateService
@@ -129,6 +129,16 @@ state = DebateState(**result)
 print("\n========== REFLECTION ==========\n")
 
 print(state.metadata["reflection"])
+
+# REASONING ANALYZER
+
+print("\n\nInvoking reasoning analyzer...\n")
+
+result = reasoning_analyzer_graph.invoke(state)
+state = DebateState(**result)
+
+print("\n========== REASONING FINGERPRINT ==========\n")
+print(state.metadata["reasoning_fingerprint"])
 # ==========================================
 # DEBATE FINISHED
 # ==========================================

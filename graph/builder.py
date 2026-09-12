@@ -5,7 +5,8 @@ from graph.nodes import (
     moderator_node,
     opponent_node,
     judge_node,
-    reflection_node
+    reflection_node,
+    reasoning_analyzer_node
 )
 
 
@@ -92,4 +93,15 @@ reflection_builder.add_edge(
 
 reflection_graph = reflection_builder.compile()
 
+# REASONING ANALYZER GRAPH
+
+reasoning_analyzer_builder = StateGraph(DebateState)
+reasoning_analyzer_builder.add_node(
+    "reasoning_analyzer",
+    reasoning_analyzer_node
+)
+reasoning_analyzer_builder.set_entry_point("reasoning_analyzer")
+reasoning_analyzer_builder.add_edge("reasoning_analyzer", END)
+
+reasoning_analyzer_graph = reasoning_analyzer_builder.compile()
 print("Graphs compiled.")
