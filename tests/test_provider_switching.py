@@ -18,7 +18,7 @@ print("\n[1/2] Switching to NVIDIA...")
 LLMService.set_provider(NVIDIAProvider())
 
 print("Current provider:")
-print(type(LLMService._provider).__name__)
+print(type(LLMService._router.providers[0]).__name__)
 
 response = LLMService.generate(
     "Explain in one sentence what a debate is."
@@ -27,7 +27,7 @@ response = LLMService.generate(
 print("\nNVIDIA response:")
 print(response)
 
-assert type(LLMService._provider).__name__ == "NVIDIAProvider"
+assert type(LLMService._router.providers[0]).__name__ == "NVIDIAProvider"
 assert isinstance(response, str)
 assert len(response.strip()) > 0
 
@@ -42,8 +42,10 @@ print("\n[2/2] Switching to Groq...")
 
 LLMService.set_provider(GroqProvider())
 
-print("Current provider:")
-print(type(LLMService._provider).__name__)
+print(
+    "Current provider:",
+    type(LLMService._router.providers[0]).__name__
+)
 
 response = LLMService.generate(
     "Explain in one sentence what logical reasoning is."
@@ -52,7 +54,7 @@ response = LLMService.generate(
 print("\nGroq response:")
 print(response)
 
-assert type(LLMService._provider).__name__ == "GroqProvider"
+assert type(LLMService._router.providers[0]).__name__ == "GroqProvider"
 assert isinstance(response, str)
 assert len(response.strip()) > 0
 

@@ -53,8 +53,11 @@ print("\nStructured response:")
 print(profile)
 
 
-print("\nCurrent provider:")
-print(type(LLMService._provider).__name__)
+print("Current router:")
+print(type(LLMService._router).__name__)
+
+print("Active provider:")
+print(type(LLMService._router.providers[0]).__name__)
 
 
 assert response == "FAKE RESPONSE: Hello"
@@ -65,7 +68,7 @@ assert isinstance(
 )
 
 assert type(
-    LLMService._provider
+    LLMService._router.providers[0]
 ).__name__ == "FakeProvider"
 
 

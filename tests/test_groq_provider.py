@@ -15,7 +15,7 @@ print("========================================")
 LLMService.set_provider(GroqProvider())
 
 print("\nProvider:")
-print(type(LLMService._provider).__name__)
+print(type(LLMService._router.providers[0]).__name__)
 
 
 # --------------------------------------------------

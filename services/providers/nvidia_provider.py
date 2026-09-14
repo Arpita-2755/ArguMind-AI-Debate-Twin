@@ -11,7 +11,21 @@ from config.nvidia import (
 )
 
 from services.providers.base import BaseLLMProvider
+from openai import (
+    APIConnectionError,
+    APIStatusError,
+    AuthenticationError,
+    RateLimitError,
+)
 
+from services.llm_errors import (
+    LLMAuthenticationError,
+    LLMRateLimitError,
+    LLMAccessError,
+    LLMModelError,
+    LLMConnectionError,
+    LLMServerError,
+)
 
 class NVIDIAProvider(BaseLLMProvider):
 
@@ -27,19 +41,29 @@ class NVIDIAProvider(BaseLLMProvider):
             base_url=NVIDIA_BASE_URL
         )
 
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str):
 
-        response = self.client.chat.completions.create(
-            model=NVIDIA_MODEL,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ]
-        )
+        try:
 
-        return response.choices[0].message.content
+            response = self.client.chat.completions.create(
+                model=NVIDIA_MODEL,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ]
+            )
+
+            return response.choices[0].message.content
+
+        except Exception as error:
+
+            translated_error = self._translate_error(
+                error
+            )
+
+            raise translated_error from error
 
     @staticmethod
     def _make_strict_schema(schema: dict) -> dict:
@@ -92,35 +116,83 @@ class NVIDIAProvider(BaseLLMProvider):
         schema: Type[BaseModel]
     ):
 
-        json_schema = schema.model_json_schema()
+        try:
 
-        json_schema = (
-            self._make_strict_schema(
-                json_schema
+            json_schema = schema.model_json_schema()
+
+            json_schema = (
+                self._make_strict_schema(
+                    json_schema
+                )
             )
-        )
 
-        response = self.client.chat.completions.create(
-            model=NVIDIA_MODEL,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-            response_format={
-                "type": "json_schema",
-                "json_schema": {
-                    "name": schema.__name__,
-                    "strict": True,
-                    "schema": json_schema
-                }
-            },
-            max_tokens=2048
-        )
+            response = self.client.chat.completions.create(
+                model=NVIDIA_MODEL,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+                response_format={
+                    "type": "json_schema",
+                    "json_schema": {
+                        "name": schema.__name__,
+                        "strict": True,
+                        "schema": json_schema
+                    }
+                },
+                max_tokens=2048
+            )
 
-        text = response.choices[0].message.content
+            text = response.choices[0].message.content
 
-        data = json.loads(text)
+            data = json.loads(text)
 
-        return schema.model_validate(data)
+            return schema.model_validate(data)
+
+        except Exception as error:
+
+            translated_error = self._translate_error(
+                error
+            )
+
+            raise translated_error from error
+    @staticmethod
+    def _translate_error(error: Exception) -> Exception:
+
+        if isinstance(error, AuthenticationError):
+            return LLMAuthenticationError(
+                "NVIDIA authentication failed."
+            )
+
+        if isinstance(error, RateLimitError):
+            return LLMRateLimitError(
+                "NVIDIA rate limit or quota exceeded."
+            )
+
+        if isinstance(error, APIConnectionError):
+            return LLMConnectionError(
+                "Could not connect to NVIDIA."
+            )
+
+        if isinstance(error, APIStatusError):
+
+            status_code = error.status_code
+
+            if status_code == 402:
+                return LLMAccessError(
+                    "NVIDIA access or billing restriction."
+                )
+
+            if status_code in (404, 410):
+                return LLMModelError(
+                    "NVIDIA model is unavailable."
+                )
+
+            if status_code >= 500:
+                return LLMServerError(
+                    "NVIDIA server error."
+                )
+
+        return error

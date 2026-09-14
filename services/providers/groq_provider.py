@@ -6,7 +6,21 @@ from pydantic import BaseModel
 
 from config.groq import GROQ_API_KEY, GROQ_MODEL
 from services.providers.base import BaseLLMProvider
+from groq import (
+    APIConnectionError,
+    APIStatusError,
+    AuthenticationError,
+    RateLimitError,
+)
 
+from services.llm_errors import (
+    LLMAuthenticationError,
+    LLMRateLimitError,
+    LLMAccessError,
+    LLMModelError,
+    LLMConnectionError,
+    LLMServerError,
+)
 
 class GroqProvider(BaseLLMProvider):
 
@@ -18,19 +32,29 @@ class GroqProvider(BaseLLMProvider):
 
         self.client = Groq(api_key=GROQ_API_KEY)
 
-    def generate(self, prompt: str) -> str:
+    def generate(self, prompt: str):
 
-        response = self.client.chat.completions.create(
-            model=GROQ_MODEL,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ]
-        )
+        try:
 
-        return response.choices[0].message.content
+            response = self.client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ]
+            )
+
+            return response.choices[0].message.content
+
+        except Exception as error:
+
+            translated_error = self._translate_error(
+                error
+            )
+
+            raise translated_error from error
 
     @staticmethod
     def _make_strict_schema(schema: dict) -> dict:
@@ -104,3 +128,42 @@ class GroqProvider(BaseLLMProvider):
         data = json.loads(text)
 
         return schema.model_validate(data)
+
+    @staticmethod
+    def _translate_error(error: Exception) -> Exception:
+
+        if isinstance(error, AuthenticationError):
+            return LLMAuthenticationError(
+                "Groq authentication failed."
+            )
+
+        if isinstance(error, RateLimitError):
+            return LLMRateLimitError(
+                "Groq rate limit or quota exceeded."
+            )
+
+        if isinstance(error, APIConnectionError):
+            return LLMConnectionError(
+                "Could not connect to Groq."
+            )
+
+        if isinstance(error, APIStatusError):
+
+            status_code = error.status_code
+
+            if status_code == 402:
+                return LLMAccessError(
+                    "Groq access or billing restriction."
+                )
+
+            if status_code in (404, 410):
+                return LLMModelError(
+                    "Groq model is unavailable."
+                )
+
+            if status_code >= 500:
+                return LLMServerError(
+                    "Groq server error."
+                )
+
+        return error

@@ -3,12 +3,13 @@ from typing import Type
 from pydantic import BaseModel
 
 from services.providers.base import BaseLLMProvider
-from services.providers.gemini_provider import GeminiProvider
+from services.provider_factory import create_default_router
+from services.llm_router import LLMRouter
 
 
 class LLMService:
 
-    _provider: BaseLLMProvider = GeminiProvider()
+    _router = create_default_router()
 
 
     @classmethod
@@ -16,7 +17,28 @@ class LLMService:
         cls,
         provider: BaseLLMProvider
     ):
-        cls._provider = provider
+        """
+        Set a single provider.
+
+        Kept for backwards compatibility with
+        existing tests and provider-specific testing.
+        """
+
+        cls._router = LLMRouter([
+            provider
+        ])
+
+
+    @classmethod
+    def set_router(
+        cls,
+        router: LLMRouter
+    ):
+        """
+        Set the LLM router used by the application.
+        """
+
+        cls._router = router
 
 
     @classmethod
@@ -25,7 +47,7 @@ class LLMService:
         prompt: str
     ) -> str:
 
-        return cls._provider.generate(prompt)
+        return cls._router.generate(prompt)
 
 
     @classmethod
@@ -35,7 +57,7 @@ class LLMService:
         schema: Type[BaseModel]
     ):
 
-        return cls._provider.generate_structured(
+        return cls._router.generate_structured(
             prompt,
             schema
         )
