@@ -2,6 +2,7 @@ from agents.opponent import OpponentAgent
 from graph.state import DebateState
 from graph.enums import DebatePhase
 from schemas.debate_plan import DebatePlan
+from services.debate_service import DebateService
 
 plan = DebatePlan(
     topic="Should AI replace software engineers?",
@@ -20,8 +21,15 @@ state = DebateState(
     current_phase=DebatePhase.OPENING,
 )
 
-state.plan = plan
+state.debate_plan = plan
+
+state = DebateService.start_turn(
+    state,
+    "AI will write most code within a decade, so most engineers become unnecessary."
+)
 
 agent = OpponentAgent()
 
-agent.run(state)
+state = agent.run(state)
+
+print(state.debate_history[-1].opponent_argument)

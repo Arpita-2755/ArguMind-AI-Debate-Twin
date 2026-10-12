@@ -14,4 +14,4 @@ moderator = ModeratorAgent()
 updated_state = moderator.run(state)
 
 print("\n========== STATE PLAN ==========\n")
-print(updated_state.plan)
+print(updated_state.debate_plan)
