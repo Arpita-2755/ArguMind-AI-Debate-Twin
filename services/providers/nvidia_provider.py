@@ -142,7 +142,7 @@ class NVIDIAProvider(BaseLLMProvider):
                         "schema": json_schema
                     }
                 },
-                max_tokens=2048
+                max_tokens=8192
             )
 
             text = response.choices[0].message.content
