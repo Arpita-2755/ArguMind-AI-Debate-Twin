@@ -6,7 +6,8 @@ from graph.nodes import (
     opponent_node,
     judge_node,
     reflection_node,
-    reasoning_analyzer_node
+    reasoning_analyzer_node,
+    memory_node
 )
 
 
@@ -104,4 +105,25 @@ reasoning_analyzer_builder.set_entry_point("reasoning_analyzer")
 reasoning_analyzer_builder.add_edge("reasoning_analyzer", END)
 
 reasoning_analyzer_graph = reasoning_analyzer_builder.compile()
+
+# ==========================================
+# MEMORY GRAPH
+# ==========================================
+
+memory_builder = StateGraph(DebateState)
+
+memory_builder.add_node(
+    "memory",
+    memory_node
+)
+
+memory_builder.set_entry_point("memory")
+
+memory_builder.add_edge(
+    "memory",
+    END
+)
+
+memory_graph = memory_builder.compile()
+
 print("Graphs compiled.")
