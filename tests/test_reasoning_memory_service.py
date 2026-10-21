@@ -112,10 +112,50 @@ def test_memory_content():
     )
 
 
+def test_full_sentence_content_is_kept_readable():
+    # Real analyzer output is often a full sentence. The old
+    # templates turned this into "Shows weakness in often
+    # extrapolates ...".
+    fingerprint = create_test_fingerprint().model_copy(
+        update={
+            "strongest_reasoning_patterns": [
+                "frequently links technology to economic outcomes"
+            ],
+            "weakest_reasoning_patterns": [
+                "Often extrapolates broad conclusions from limited evidence.",
+                "   ",
+            ],
+        }
+    )
+
+    memories = ReasoningMemoryService.from_fingerprint(
+        fingerprint=fingerprint,
+        user_id="user_001",
+        source_debate_id="debate_001",
+    )
+
+    contents = [memory.content for memory in memories]
+
+    assert (
+        "Frequently links technology to economic outcomes"
+        in contents
+    )
+    assert (
+        "Often extrapolates broad conclusions from limited evidence."
+        in contents
+    )
+    assert not any("Shows weakness in" in c for c in contents)
+    assert not any("Frequently demonstrates" in c for c in contents)
+
+    # Blank items from the LLM are skipped.
+    assert all(content.strip() for content in contents)
+
+
 if __name__ == "__main__":
     test_memory_creation()
     test_memory_types()
     test_memory_metadata()
     test_memory_content()
+    test_full_sentence_content_is_kept_readable()
 
     print("All Reasoning Memory Service tests passed!")

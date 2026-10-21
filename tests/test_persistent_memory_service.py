@@ -70,7 +70,7 @@ def test_persistent_memory():
         memory
         for memory in stored_after_first
         if memory.content
-        == "Frequently demonstrates causal reasoning."
+        == "Causal reasoning"
     )
 
     assert first_pattern.source_debate_count == 1
@@ -103,7 +103,7 @@ def test_persistent_memory():
         memory
         for memory in stored_after_second
         if memory.content
-        == "Frequently demonstrates causal reasoning."
+        == "Causal reasoning"
     )
 
     assert updated_pattern.source_debate_count == 2
@@ -138,12 +138,12 @@ def test_different_memories_remain_separate():
     # These are intentionally different memories
     # generated from different fingerprint fields.
     assert (
-        "Frequently demonstrates causal reasoning."
+        "Causal reasoning"
         in contents
     )
 
     assert (
-        "Shows weakness in empirical reasoning."
+        "Empirical reasoning"
         in contents
     )
 

@@ -11,6 +11,19 @@ from schemas.reasoning_memory import (
 class ReasoningMemoryService:
 
     @staticmethod
+    def _clean_content(text: str) -> str:
+        """
+        Store the analyzer's own wording. It is often a full
+        sentence, so wrapping it in a template ("Shows weakness
+        in ...") produced broken text. The memory type already
+        says what kind of observation it is.
+        """
+
+        text = " ".join(text.split())
+
+        return text[:1].upper() + text[1:]
+
+    @staticmethod
     def _create_memory(
         user_id: str,
         memory_type: MemoryType,
@@ -45,97 +58,37 @@ class ReasoningMemoryService:
         topics: list[str] | None = None,
     ) -> list[ReasoningMemory]:
 
+        # (fingerprint items, memory type, starting confidence)
+        sources = [
+            (fingerprint.strongest_reasoning_patterns, MemoryType.REASONING_PATTERN, 0.7),
+            (fingerprint.weakest_reasoning_patterns, MemoryType.WEAKNESS, 0.7),
+            ([fingerprint.evidence_style], MemoryType.EVIDENCE_HABIT, 0.65),
+            (fingerprint.common_assumptions, MemoryType.ASSUMPTION, 0.6),
+            (fingerprint.fallacy_tendencies, MemoryType.FALLACY_TENDENCY, 0.6),
+            (fingerprint.reasoning_strengths, MemoryType.STRENGTH, 0.7),
+            (fingerprint.reasoning_weaknesses, MemoryType.WEAKNESS, 0.7),
+        ]
+
         memories = []
 
-        # Strong reasoning patterns
-        for pattern in fingerprint.strongest_reasoning_patterns:
-            memories.append(
-                cls._create_memory(
-                    user_id=user_id,
-                    memory_type=MemoryType.REASONING_PATTERN,
-                    content=f"Frequently demonstrates {pattern.lower()}.",
-                    source_debate_id=source_debate_id,
-                    confidence=0.7,
-                    topics=topics,
-                )
-            )
+        for items, memory_type, confidence in sources:
 
-        # Weak reasoning patterns
-        for pattern in fingerprint.weakest_reasoning_patterns:
-            memories.append(
-                cls._create_memory(
-                    user_id=user_id,
-                    memory_type=MemoryType.WEAKNESS,
-                    content=f"Shows weakness in {pattern.lower()}.",
-                    source_debate_id=source_debate_id,
-                    confidence=0.7,
-                    topics=topics,
-                )
-            )
+            for item in items:
 
-        # Evidence style
-        if fingerprint.evidence_style:
-            memories.append(
-                cls._create_memory(
-                    user_id=user_id,
-                    memory_type=MemoryType.EVIDENCE_HABIT,
-                    content=fingerprint.evidence_style,
-                    source_debate_id=source_debate_id,
-                    confidence=0.65,
-                    topics=topics,
-                )
-            )
+                content = cls._clean_content(item or "")
 
-        # Common assumptions
-        for assumption in fingerprint.common_assumptions:
-            memories.append(
-                cls._create_memory(
-                    user_id=user_id,
-                    memory_type=MemoryType.ASSUMPTION,
-                    content=assumption,
-                    source_debate_id=source_debate_id,
-                    confidence=0.6,
-                    topics=topics,
-                )
-            )
+                if not content:
+                    continue
 
-        # Fallacy tendencies
-        for fallacy in fingerprint.fallacy_tendencies:
-            memories.append(
-                cls._create_memory(
-                    user_id=user_id,
-                    memory_type=MemoryType.FALLACY_TENDENCY,
-                    content=fallacy,
-                    source_debate_id=source_debate_id,
-                    confidence=0.6,
-                    topics=topics,
+                memories.append(
+                    cls._create_memory(
+                        user_id=user_id,
+                        memory_type=memory_type,
+                        content=content,
+                        source_debate_id=source_debate_id,
+                        confidence=confidence,
+                        topics=topics,
+                    )
                 )
-            )
-
-        # Reasoning strengths
-        for strength in fingerprint.reasoning_strengths:
-            memories.append(
-                cls._create_memory(
-                    user_id=user_id,
-                    memory_type=MemoryType.STRENGTH,
-                    content=strength,
-                    source_debate_id=source_debate_id,
-                    confidence=0.7,
-                    topics=topics,
-                )
-            )
-
-        # Reasoning weaknesses
-        for weakness in fingerprint.reasoning_weaknesses:
-            memories.append(
-                cls._create_memory(
-                    user_id=user_id,
-                    memory_type=MemoryType.WEAKNESS,
-                    content=weakness,
-                    source_debate_id=source_debate_id,
-                    confidence=0.7,
-                    topics=topics,
-                )
-            )
 
         return memories
