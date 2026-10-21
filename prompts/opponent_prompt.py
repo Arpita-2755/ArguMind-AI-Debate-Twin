@@ -1,3 +1,6 @@
+from services.memory_context_service import MemoryContextService
+
+
 def get_round_role(round_number: int, total_rounds: int) -> str:
 
     if round_number == 1:
@@ -65,10 +68,41 @@ Stress-test the user's overall position.
 """
 
 
-def build_opponent_prompt(plan, user_argument: str, debate_history=None):
+def build_memory_section(memory_context: str | None) -> str:
+
+    if (
+        not memory_context
+        or memory_context == MemoryContextService.NO_MEMORY_CONTEXT
+    ):
+        return ""
+
+    return f"""
+WHAT YOU KNOW ABOUT THIS USER FROM PAST DEBATES:
+
+{memory_context}
+
+HOW TO USE THIS KNOWLEDGE:
+
+- Use at most one of these tendencies in this response.
+- Only use a tendency if the user's current argument actually shows it.
+- If none of them appear in the current argument, ignore this section.
+- Probe the weakness through the argument itself, for example by asking
+  for the evidence they tend to skip or testing the assumption they rely on.
+- Never tell the user that you remember them or their past debates.
+"""
+
+
+def build_opponent_prompt(
+    plan,
+    user_argument: str,
+    debate_history=None,
+    memory_context: str | None = None
+):
 
     if debate_history is None:
         debate_history = []
+
+    memory_section = build_memory_section(memory_context)
 
     round_number = len(debate_history) + 1
     total_rounds = plan.rounds
@@ -121,7 +155,7 @@ CURRENT ROUND:
 {round_number} / {total_rounds}
 
 {round_role}
-
+{memory_section}
 {previous_debate}
 
 CURRENT USER ARGUMENT:

@@ -3,13 +3,15 @@ from schemas.reasoning_memory import MemoryType, ReasoningMemory
 
 class MemoryContextService:
 
+    NO_MEMORY_CONTEXT = "No prior reasoning memories are available."
+
     @staticmethod
     def build_context(
         memories: list[ReasoningMemory],
     ) -> str:
 
         if not memories:
-            return "No prior reasoning memories are available."
+            return MemoryContextService.NO_MEMORY_CONTEXT
 
         grouped: dict[MemoryType, list[str]] = {}
 

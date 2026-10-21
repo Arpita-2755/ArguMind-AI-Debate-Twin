@@ -15,10 +15,14 @@ class OpponentAgent(BaseAgent):
         # Previous turns only.
         previous_history = state.debate_history[:-1]
 
+        # Filled once by the memory graph before the debate starts.
+        memory_context = state.metadata.get("memory_context")
+
         argument = OpponentService.generate_response(
             state.debate_plan,
             current_turn.user_argument,
-            previous_history
+            previous_history,
+            memory_context
         )
 
         state = DebateService.complete_turn(

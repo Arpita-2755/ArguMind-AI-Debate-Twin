@@ -1,4 +1,6 @@
-from graph.builder import (moderator_graph, opponent_graph, judge_graph, reflection_graph, reasoning_analyzer_graph)
+import os
+
+from graph.builder import (memory_graph, moderator_graph, opponent_graph, judge_graph, reflection_graph, reasoning_analyzer_graph)
 from graph.state import DebateState
 from graph.enums import DebatePhase
 from services.debate_service import DebateService
@@ -13,6 +15,24 @@ state = DebateState(
     ai_stance="Oppose",
     current_phase=DebatePhase.OPENING,
 )
+
+state.metadata["user_id"] = os.getenv(
+    "ARGUMIND_TEST_USER_ID",
+    "graph-test-user"
+)
+
+
+# ==========================================
+# MEMORY (once, before the debate starts)
+# ==========================================
+
+print("\nLoading reasoning memory...\n")
+
+result = memory_graph.invoke(state)
+
+state = DebateState(**result)
+
+print(state.metadata["memory_context"])
 
 
 # ==========================================

@@ -8,13 +8,15 @@ class OpponentService:
     def generate_response(
         plan,
         user_argument,
-        debate_history
+        debate_history,
+        memory_context=None
     ):
 
         prompt = build_opponent_prompt(
             plan,
             user_argument,
-            debate_history
+            debate_history,
+            memory_context
         )
 
         return LLMService.generate(prompt)
