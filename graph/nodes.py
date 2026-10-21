@@ -4,6 +4,7 @@ from agents.judge import JudgeAgent
 from agents.reflection import ReflectionAgent
 from agents.reasoning_analyzer import ReasoningAnalyzerAgent
 from agents.memory_agent import MemoryAgent
+from agents.memory_update_agent import MemoryUpdateAgent
 
 
 moderator = ModeratorAgent()
@@ -12,6 +13,7 @@ judge = JudgeAgent()
 reflection = ReflectionAgent()
 reasoning_analyzer = ReasoningAnalyzerAgent()
 memory = MemoryAgent()
+memory_update = MemoryUpdateAgent()
 
 
 def moderator_node(state):
@@ -42,3 +44,8 @@ def reasoning_analyzer_node(state):
 def memory_node(state):
     print("Memory node reached")
     return memory.run(state)
+
+
+def memory_update_node(state):
+    print("Memory update node reached")
+    return memory_update.run(state)

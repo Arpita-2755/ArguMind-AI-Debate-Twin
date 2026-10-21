@@ -7,7 +7,8 @@ from graph.nodes import (
     judge_node,
     reflection_node,
     reasoning_analyzer_node,
-    memory_node
+    memory_node,
+    memory_update_node
 )
 
 
@@ -125,5 +126,25 @@ memory_builder.add_edge(
 )
 
 memory_graph = memory_builder.compile()
+
+# ==========================================
+# MEMORY UPDATE GRAPH (after the analyzer)
+# ==========================================
+
+memory_update_builder = StateGraph(DebateState)
+
+memory_update_builder.add_node(
+    "memory_update",
+    memory_update_node
+)
+
+memory_update_builder.set_entry_point("memory_update")
+
+memory_update_builder.add_edge(
+    "memory_update",
+    END
+)
+
+memory_update_graph = memory_update_builder.compile()
 
 print("Graphs compiled.")

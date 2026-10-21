@@ -1,6 +1,6 @@
 import os
 
-from graph.builder import (memory_graph, moderator_graph, opponent_graph, judge_graph, reflection_graph, reasoning_analyzer_graph)
+from graph.builder import (memory_graph, moderator_graph, opponent_graph, judge_graph, reflection_graph, reasoning_analyzer_graph, memory_update_graph)
 from graph.state import DebateState
 from graph.enums import DebatePhase
 from services.debate_service import DebateService
@@ -159,6 +159,19 @@ state = DebateState(**result)
 
 print("\n========== REASONING FINGERPRINT ==========\n")
 print(state.metadata["reasoning_fingerprint"])
+
+# MEMORY UPDATE (once, after the debate)
+
+print("\n\nSaving reasoning memory...\n")
+
+result = memory_update_graph.invoke(state)
+state = DebateState(**result)
+
+print(
+    f"Stored or updated "
+    f"{state.metadata['stored_memory_count']} memories "
+    f"for {state.metadata['user_id']}."
+)
 # ==========================================
 # DEBATE FINISHED
 # ==========================================
