@@ -1,4 +1,3 @@
-import json
 from typing import Type
 
 from openai import OpenAI
@@ -7,10 +6,15 @@ from pydantic import BaseModel
 from config.nvidia import (
     NVIDIA_API_KEY,
     NVIDIA_MODEL,
-    NVIDIA_BASE_URL
+    NVIDIA_BASE_URL,
+    NVIDIA_TIMEOUT_SECONDS
 )
 
 from services.providers.base import BaseLLMProvider
+from services.providers.structured_output import (
+    build_structured_prompt,
+    parse_structured,
+)
 from openai import (
     APIConnectionError,
     APIStatusError,
@@ -25,6 +29,7 @@ from services.llm_errors import (
     LLMModelError,
     LLMConnectionError,
     LLMServerError,
+    LLMResponseError,
 )
 
 class NVIDIAProvider(BaseLLMProvider):
@@ -36,9 +41,13 @@ class NVIDIAProvider(BaseLLMProvider):
                 "NVIDIA_API_KEY is not set in the environment."
             )
 
+        # No SDK retries: a slow NVIDIA call should hand over
+        # to the next provider, not be retried here.
         self.client = OpenAI(
             api_key=NVIDIA_API_KEY,
-            base_url=NVIDIA_BASE_URL
+            base_url=NVIDIA_BASE_URL,
+            timeout=NVIDIA_TIMEOUT_SECONDS,
+            max_retries=0
         )
 
     def generate(self, prompt: str):
@@ -55,7 +64,14 @@ class NVIDIAProvider(BaseLLMProvider):
                 ]
             )
 
-            return response.choices[0].message.content
+            text = response.choices[0].message.content
+
+            if not text:
+                raise LLMResponseError(
+                    "NVIDIA returned an empty response."
+                )
+
+            return text
 
         except Exception as error:
 
@@ -63,52 +79,10 @@ class NVIDIAProvider(BaseLLMProvider):
                 error
             )
 
+            if translated_error is error:
+                raise
+
             raise translated_error from error
-
-    @staticmethod
-    def _make_strict_schema(schema: dict) -> dict:
-        """
-        Convert a Pydantic JSON schema into a strict
-        JSON schema compatible with NVIDIA structured outputs.
-        """
-
-        if not isinstance(schema, dict):
-            return schema
-
-        if schema.get("type") == "object":
-
-            properties = schema.get(
-                "properties",
-                {}
-            )
-
-            schema["additionalProperties"] = False
-
-            if properties:
-                schema["required"] = list(
-                    properties.keys()
-                )
-
-        for key, value in list(schema.items()):
-
-            if isinstance(value, dict):
-
-                schema[key] = (
-                    NVIDIAProvider._make_strict_schema(
-                        value
-                    )
-                )
-
-            elif isinstance(value, list):
-
-                schema[key] = [
-                    NVIDIAProvider._make_strict_schema(item)
-                    if isinstance(item, dict)
-                    else item
-                    for item in value
-                ]
-
-        return schema
 
     def generate_structured(
         self,
@@ -116,40 +90,33 @@ class NVIDIAProvider(BaseLLMProvider):
         schema: Type[BaseModel]
     ):
 
+        # The schema goes in the prompt instead of NVIDIA's
+        # strict json_schema mode, which hangs or produces
+        # runaway output on the free endpoint.
+
         try:
-
-            json_schema = schema.model_json_schema()
-
-            json_schema = (
-                self._make_strict_schema(
-                    json_schema
-                )
-            )
 
             response = self.client.chat.completions.create(
                 model=NVIDIA_MODEL,
                 messages=[
                     {
                         "role": "user",
-                        "content": prompt
+                        "content": build_structured_prompt(
+                            prompt,
+                            schema
+                        )
                     }
                 ],
-                response_format={
-                    "type": "json_schema",
-                    "json_schema": {
-                        "name": schema.__name__,
-                        "strict": True,
-                        "schema": json_schema
-                    }
-                },
-                max_tokens=8192
+                max_tokens=4096
             )
 
             text = response.choices[0].message.content
 
-            data = json.loads(text)
-
-            return schema.model_validate(data)
+            return parse_structured(
+                text,
+                schema,
+                "NVIDIA"
+            )
 
         except Exception as error:
 
@@ -157,7 +124,11 @@ class NVIDIAProvider(BaseLLMProvider):
                 error
             )
 
+            if translated_error is error:
+                raise
+
             raise translated_error from error
+
     @staticmethod
     def _translate_error(error: Exception) -> Exception:
 
@@ -171,9 +142,10 @@ class NVIDIAProvider(BaseLLMProvider):
                 "NVIDIA rate limit or quota exceeded."
             )
 
+        # Also covers APITimeoutError, which subclasses it.
         if isinstance(error, APIConnectionError):
             return LLMConnectionError(
-                "Could not connect to NVIDIA."
+                "Could not connect to NVIDIA or the request timed out."
             )
 
         if isinstance(error, APIStatusError):

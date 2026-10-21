@@ -31,3 +31,8 @@ class LLMConnectionError(LLMError):
 class LLMServerError(LLMError):
     """Provider-side server failure."""
     pass
+
+
+class LLMResponseError(LLMError):
+    """Provider returned empty, malformed or invalid output."""
+    pass

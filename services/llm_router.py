@@ -10,6 +10,7 @@ from services.llm_errors import (
     LLMModelError,
     LLMConnectionError,
     LLMServerError,
+    LLMResponseError,
 )
 
 
@@ -21,6 +22,7 @@ class LLMRouter:
         LLMModelError,
         LLMConnectionError,
         LLMServerError,
+        LLMResponseError,
     )
 
     def __init__(self, providers: list[BaseLLMProvider]):
